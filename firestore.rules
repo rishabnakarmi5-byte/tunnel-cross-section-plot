@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidString(val, min, max) {
+      return val is string && val.size() >= min && val.size() <= max;
+    }
+
+    // Domain Validators
+    function isValidProfile(data, userId) {
+      return data.keys().hasAll(['id', 'userId', 'config', 'sections']) &&
+             data.userId == userId &&
+             data.config is map &&
+             data.sections is list &&
+             data.config.keys().hasAll(['id', 'name', 'shape', 'width']) &&
+             isValidString(data.config.name, 1, 100) &&
+             data.config.shape in ['inverted-d', 'circular', 'horse-shoe'];
+    }
+
+    // Rules
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      
+      match /profiles/{profileId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidProfile(request.resource.data, userId);
+        allow update: if isOwner(userId) && isValidProfile(request.resource.data, userId);
+        allow delete: if isOwner(userId);
+      }
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "entities": {
+    "TunnelConfig": {
+      "title": "Tunnel Configuration",
+      "description": "Geometric and slope parameters for a tunnel project.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "shape": { "type": "string", "enum": ["inverted-d", "circular", "horse-shoe"] },
+        "width": { "type": "number" },
+        "wallHeight": { "type": "number" },
+        "archRadius": { "type": "number" },
+        "liningThicknessOvert": { "type": "number" },
+        "liningThicknessInvert": { "type": "number" },
+        "initialInvertLevel": { "type": "number" },
+        "slopeSegments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "startChainage": { "type": "number" },
+              "endChainage": { "type": "number" },
+              "startElevation": { "type": "number" },
+              "slope": { "type": "number" }
+            }
+          }
+        },
+        "userId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "shape", "width", "userId"]
+    },
+    "SurveyProject": {
+      "title": "Survey Project",
+      "description": "Stored survey data for a specific tunnel project.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "tunnelConfigId": { "type": "string" },
+        "sections": { "type": "array" },
+        "userId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "userId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/tunnelConfigs/{configId}": {
+      "schema": "TunnelConfig",
+      "description": "User-specific tunnel configurations."
+    },
+    "/users/{userId}/surveyProjects/{projectId}": {
+      "schema": "SurveyProject",
+      "description": "User-specific survey data projects."
+    }
+  }
+}
