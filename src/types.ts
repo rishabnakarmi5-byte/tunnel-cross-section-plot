@@ -56,3 +56,10 @@ export interface CalculationResults {
   peripheryInner: number;
   peripheryOuter: number;
 }
+
+export interface UploadOptions {
+  format: 'local' | 'global';
+  order: 'EN' | 'NE';
+  flipSides: boolean;
+}
+

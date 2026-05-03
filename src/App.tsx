@@ -3,7 +3,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { CrossSectionView } from './components/CrossSectionView';
 import { PointsPanel } from './components/PointsPanel';
-import { TunnelConfig, SectionData } from './types';
+import { TunnelConfig, SectionData, UploadOptions } from './types';
 import { processSurveyData } from './lib/tunnel-logic';
 import { exportToDXF, exportToPDF } from './lib/export-logic';
 import { createDefaultConfig } from './lib/templates';
@@ -27,6 +27,12 @@ export default function App() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [pdfScale, setPdfScale] = useState<string>('Fit to Page');
   const [activeTab, setActiveTab] = useState<'2d' | '3d'>('2d');
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [uploadOptions, setUploadOptions] = useState<UploadOptions>({
+    format: 'local',
+    order: 'EN',
+    flipSides: true
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -66,7 +72,7 @@ export default function App() {
             complete: (results) => {
               try {
                 console.log('CSV parsed, rows:', results.data.length);
-                const processed = processSurveyData(results.data, isFlipped);
+                const processed = processSurveyData(results.data, { ...uploadOptions, flipSides: isFlipped });
                 console.log('Survey data processed, sections:', processed.length);
                 
                 if (processed.length === 0) {
@@ -93,7 +99,7 @@ export default function App() {
           const sheet = workbook.Sheets[sheetName];
           const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
           console.log('Excel parsed, rows:', jsonData.length);
-          const processed = processSurveyData(jsonData, isFlipped);
+          const processed = processSurveyData(jsonData as any[][], { ...uploadOptions, flipSides: isFlipped });
           console.log('Survey data processed, sections:', processed.length);
           
           if (processed.length === 0) {
@@ -245,7 +251,7 @@ export default function App() {
                   </div>
 
                   <button 
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => setIsUploadModalOpen(true)}
                     className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 px-3 py-1.5 rounded-md border border-slate-200 transition-colors"
                   >
                     <Upload className="w-4 h-4 text-slate-500" />
@@ -463,7 +469,7 @@ export default function App() {
                   <p className="text-sm">Upload a CSV or Excel file containing Easting, Northing, and Elevation columns to begin analysis.</p>
                 </div>
                 <button 
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => setIsUploadModalOpen(true)}
                   className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg shadow-md transition-all font-bold"
                 >
                   Select File
@@ -492,6 +498,58 @@ export default function App() {
         onEditPoint={handleEditPoint}
         onDeletePoint={handleDeletePoint}
       />
+      {isUploadModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+            <h2 className="text-xl font-bold text-slate-800 mb-4">Upload Survey Data</h2>
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">Data Format</label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="format" checked={uploadOptions.format === 'local'} onChange={() => setUploadOptions(prev => ({...prev, format: 'local'}))} />
+                    <span className="text-sm">Local Coordinates (Offset)</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="format" checked={uploadOptions.format === 'global'} onChange={() => setUploadOptions(prev => ({...prev, format: 'global'}))} />
+                    <span className="text-sm">Global Coordinates (X, Y)</span>
+                  </label>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">Column Order</label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="order" checked={uploadOptions.order === 'EN'} onChange={() => setUploadOptions(prev => ({...prev, order: 'EN'}))} />
+                    <span className="text-sm">Easting, Northing</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="order" checked={uploadOptions.order === 'NE'} onChange={() => setUploadOptions(prev => ({...prev, order: 'NE'}))} />
+                    <span className="text-sm">Northing, Easting</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={() => setIsUploadModalOpen(false)}
+                className="px-4 py-2 text-slate-500 hover:text-slate-700 font-medium"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => {
+                  setIsUploadModalOpen(false);
+                  fileInputRef.current?.click();
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold"
+              >
+                Select File
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -200,7 +200,7 @@ export function calculatePeriphery(points: { x: number; y: number }[]): number {
   return length;
 }
 
-import { CalculationResults } from '../types';
+import { CalculationResults, UploadOptions } from '../types';
 
 export function getCalculationResults(section: SectionData, config: TunnelConfig): CalculationResults | null {
   const invertBottom = getDesignInvertBottom(section.chainage, config.slopeSegments, config.initialInvertLevel);
@@ -225,7 +225,7 @@ export function getCalculationResults(section: SectionData, config: TunnelConfig
   };
 }
 
-export function processSurveyData(data: any[][], flipSides: boolean): SectionData[] {
+export function processSurveyData(data: any[][], options: UploadOptions): SectionData[] {
   const sectionsMap = new Map<string, {
     chainage: number;
     chainageLabel: string;
@@ -236,52 +236,43 @@ export function processSurveyData(data: any[][], flipSides: boolean): SectionDat
 
   if (!data || data.length === 0) return [];
 
-  let hasHeaders = false;
   let colEast = -1;
   let colNorth = -1;
   let colElev = -1;
   let colCode = -1;
 
+  let startIndex = 0;
+  
+  // Check if first row is a header
   const firstRow = data[0];
   if (firstRow && firstRow.some((cell: any) => typeof cell === 'string' && cell.toLowerCase().includes('easting'))) {
-    hasHeaders = true;
-    firstRow.forEach((cell: any, idx: number) => {
-      if (typeof cell !== 'string') return;
-      const lower = cell.toLowerCase();
-      if (lower.includes('easting') || lower.includes('x')) colEast = idx;
-      if (lower.includes('northing') || lower.includes('y')) colNorth = idx;
-      if (lower.includes('elevation') || lower.includes('z') || lower.includes('elev')) colElev = idx;
-      if (lower.includes('point code') || lower.includes('code') || lower.includes('pointcode')) colCode = idx;
-    });
+    startIndex = 1;
+    // We can still try to read the column indices from the header if they exist, but if order is explicitly set, we should probably prefer the order, or at least the headers if they are clear.
+    // Given the user explicit selection, let's map strictly based on the order for the first 3 numeric columns.
+  } else if (firstRow && firstRow.some((cell: any) => typeof cell === 'string' && /[a-z]/i.test(cell))) {
+    // Has some string headers
+    startIndex = 1;
   }
 
-  // Determine indices if no headers
-  if (!hasHeaders) {
-    // Assuming standard layout from user: [Serial, Global X, Global Y, Elev, Text]
-    // If length is 4, maybe no serial.
-    const sampleRow = data.find(r => r && r.length >= 4 && !isNaN(parseFloat(r[1])));
-    if (sampleRow) {
-      if (sampleRow.length >= 5) {
-        colEast = 1; colNorth = 2; colElev = 3; colCode = 4;
-      } else {
-        colEast = 0; colNorth = 1; colElev = 2; colCode = 3;
-      }
+  // Find columns based on options
+  if (options.order === 'EN') {
+    // Find the first 4 columns that seem to have data
+    colEast = 1; colNorth = 2; colElev = 3; colCode = 4;
+  } else { // NE
+    colEast = 2; colNorth = 1; colElev = 3; colCode = 4;
+  }
+
+  // Adjust if only 4 columns (no serial)
+  const sampleRow = data[startIndex];
+  if (sampleRow && sampleRow.length === 4) {
+    if (options.order === 'EN') {
+      colEast = 0; colNorth = 1; colElev = 2; colCode = 3;
+    } else {
+      colEast = 1; colNorth = 0; colElev = 2; colCode = 3;
     }
   }
 
-  const startIndex = hasHeaders ? 1 : 0;
-  
-  // First pass to determine if it's Global Coordinates by looking at magnitude
-  let isGlobalCoords = false;
-  for (let i = startIndex; i < Math.min(startIndex + 10, data.length); i++) {
-    const row = data[i];
-    if (!row || row.length < 3) continue;
-    const eastVal = parseFloat(row[colEast]);
-    if (!isNaN(eastVal) && Math.abs(eastVal) > 5000) {
-      isGlobalCoords = true;
-      break;
-    }
-  }
+  const isGlobalCoords = options.format === 'global';
 
   for (let i = startIndex; i < data.length; i++) {
     const row = data[i];
@@ -367,7 +358,7 @@ export function processSurveyData(data: any[][], flipSides: boolean): SectionDat
           localEasting = d; // Default positive if unknown
         }
         
-        const eastingVal = flipSides ? -1 * localEasting : localEasting;
+        const eastingVal = options.flipSides ? -1 * localEasting : localEasting;
 
         if (Math.abs(eastingVal) < Math.abs(closestEasting)) {
           closestEasting = eastingVal;
@@ -379,7 +370,7 @@ export function processSurveyData(data: any[][], flipSides: boolean): SectionDat
 
     } else {
       group.points.forEach(p => {
-        const eastingVal = flipSides ? -1 * p.easting : p.easting;
+        const eastingVal = options.flipSides ? -1 * p.easting : p.easting;
         if (Math.abs(eastingVal) < Math.abs(closestEasting)) {
           closestEasting = eastingVal;
           centerSurveyElev = p.elevation;
