@@ -281,7 +281,7 @@ export const CrossSectionView: React.FC<CrossSectionViewProps> = ({ section, con
             </div>
             <div className="flex justify-between items-center">
               <span className="text-xs text-slate-500">Lining (Actual)</span>
-              <span className="text-sm font-bold text-blue-600">{results.areaConcreteActual.toFixed(2)}</span>
+              <span className="text-sm font-bold text-emerald-600">{results.areaConcreteActual.toFixed(2)}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-xs text-slate-500">Lining (Design)</span>

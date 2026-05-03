@@ -34,9 +34,9 @@ const SHAPE_ICONS: Record<TunnelShape, React.ReactNode> = {
 
 const SHAPE_ACCENT_CLASSES: Record<TunnelShape, { card: string; badge: string; border: string }> = {
   'inverted-d': {
-    card: 'hover:bg-blue-600 hover:border-blue-400',
-    badge: 'bg-blue-500/20 text-blue-300',
-    border: 'border-blue-500',
+    card: 'hover:bg-emerald-600 hover:border-emerald-400',
+    badge: 'bg-emerald-500/20 text-emerald-300',
+    border: 'border-emerald-500',
   },
   'circular': {
     card: 'hover:bg-violet-600 hover:border-violet-400',
@@ -75,7 +75,7 @@ const NumberInput: React.FC<{
       step={step}
       value={value}
       onChange={e => onChange(parseFloat(e.target.value) || 0)}
-      className="w-full bg-slate-800 border border-slate-700 text-white text-sm px-2.5 py-1.5 rounded-lg focus:outline-none focus:border-blue-500 transition-colors"
+      className="w-full bg-slate-800 border border-slate-700 text-white text-sm px-2.5 py-1.5 rounded-lg focus:outline-none focus:border-emerald-500 transition-colors"
     />
   </label>
 );
@@ -204,7 +204,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, sections, s
               onClick={saveProfile}
               disabled={isSaving}
               title="Save to cloud"
-              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
+              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
             >
               {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
               Save
@@ -221,7 +221,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, sections, s
           value={config.name}
           onChange={e => updateConfig({ name: e.target.value })}
           placeholder="e.g. North Tunnel Phase 1"
-          className="mt-1.5 w-full bg-slate-800 border border-slate-700 text-white text-sm px-3 py-2 rounded-lg focus:outline-none focus:border-blue-500 transition-colors"
+          className="mt-1.5 w-full bg-slate-800 border border-slate-700 text-white text-sm px-3 py-2 rounded-lg focus:outline-none focus:border-emerald-500 transition-colors"
         />
       </div>
 
@@ -390,7 +390,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, sections, s
           </button>
           <button
             onClick={addSlopeSegment}
-            className="p-1 hover:bg-slate-700 text-slate-400 hover:text-blue-400 rounded-lg transition-colors"
+            className="p-1 hover:bg-slate-700 text-slate-400 hover:text-emerald-400 rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" />
           </button>
@@ -416,7 +416,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, sections, s
                       type="number"
                       value={seg.startChainage}
                       onChange={e => updateSlopeSegment(seg.id, { startChainage: parseFloat(e.target.value) || 0 })}
-                      className="w-full bg-slate-700 border border-slate-600 text-white text-xs px-2 py-1.5 rounded-lg focus:outline-none focus:border-blue-500"
+                      className="w-full bg-slate-700 border border-slate-600 text-white text-xs px-2 py-1.5 rounded-lg focus:outline-none focus:border-emerald-500"
                     />
                   </label>
                   <label className="block space-y-1">
@@ -425,7 +425,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, sections, s
                       type="number"
                       value={seg.endChainage}
                       onChange={e => updateSlopeSegment(seg.id, { endChainage: parseFloat(e.target.value) || 0 })}
-                      className="w-full bg-slate-700 border border-slate-600 text-white text-xs px-2 py-1.5 rounded-lg focus:outline-none focus:border-blue-500"
+                      className="w-full bg-slate-700 border border-slate-600 text-white text-xs px-2 py-1.5 rounded-lg focus:outline-none focus:border-emerald-500"
                     />
                   </label>
                 </div>
@@ -439,7 +439,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, sections, s
                         const v = parseFloat(e.target.value);
                         updateSlopeSegment(seg.id, { slope: v !== 0 ? -1 / v : 0 });
                       }}
-                      className="w-full bg-slate-700 border border-slate-600 text-white text-xs px-2 py-1.5 rounded-lg focus:outline-none focus:border-blue-500"
+                      className="w-full bg-slate-700 border border-slate-600 text-white text-xs px-2 py-1.5 rounded-lg focus:outline-none focus:border-emerald-500"
                     />
                   </label>
                   {index === 0 && (
@@ -449,7 +449,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, sections, s
                         type="number"
                         value={seg.startElevation ?? config.initialInvertLevel}
                         onChange={e => updateSlopeSegment(seg.id, { startElevation: parseFloat(e.target.value) || 0 })}
-                        className="w-full bg-slate-700 border border-slate-600 text-white text-xs px-2 py-1.5 rounded-lg focus:outline-none focus:border-blue-500"
+                        className="w-full bg-slate-700 border border-slate-600 text-white text-xs px-2 py-1.5 rounded-lg focus:outline-none focus:border-emerald-500"
                       />
                     </label>
                   )}

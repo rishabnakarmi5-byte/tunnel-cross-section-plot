@@ -209,7 +209,7 @@ export default function App() {
     return (
       <div className="h-screen flex items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-10 h-10 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
           <p className="text-slate-500 font-medium">Initializing...</p>
         </div>
       </div>
@@ -224,7 +224,7 @@ export default function App() {
           {/* Header */}
           <header className="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between shadow-sm z-10">
             <div className="flex items-center gap-3">
-              <div className="bg-blue-600 p-2 rounded-lg">
+              <div className="bg-emerald-600 p-2 rounded-lg">
                 <HardHat className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -274,7 +274,7 @@ export default function App() {
                     <select 
                       value={pdfScale}
                       onChange={(e) => setPdfScale(e.target.value)}
-                      className="bg-white border text-sm font-medium border-slate-200 rounded-md px-2 py-1 outline-none focus:border-blue-500"
+                      className="bg-white border text-sm font-medium border-slate-200 rounded-md px-2 py-1 outline-none focus:border-emerald-500"
                     >
                       <option value="Fit to Page">Fit to Page</option>
                       <option value="1:50">1:50</option>
@@ -295,7 +295,7 @@ export default function App() {
                   <button 
                     onClick={handleExportDXF}
                     disabled={sections.length === 0}
-                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white px-4 py-1.5 rounded-md shadow-sm transition-colors text-sm font-medium"
+                    className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white px-4 py-1.5 rounded-md shadow-sm transition-colors text-sm font-medium"
                   >
                     <Download className="w-4 h-4" />
                     <span>Export DXF</span>
@@ -304,7 +304,7 @@ export default function App() {
               ) : (
                 <button 
                   onClick={signIn}
-                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg shadow-md transition-all font-bold"
+                  className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg shadow-md transition-all font-bold"
                 >
                   <LogIn className="w-4 h-4" />
                   <span>Sign In with Google</span>
@@ -318,8 +318,8 @@ export default function App() {
             {!user ? (
               <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-6">
                 <div className="bg-white p-12 rounded-3xl border border-slate-200 shadow-xl flex flex-col items-center gap-6 max-w-md text-center">
-                  <div className="bg-blue-50 p-6 rounded-full">
-                    <HardHat className="w-16 h-16 text-blue-600" />
+                  <div className="bg-emerald-50 p-6 rounded-full">
+                    <HardHat className="w-16 h-16 text-emerald-600" />
                   </div>
                   <div>
                     <h2 className="text-slate-800 font-bold text-2xl mb-2">Welcome to Tunnel Pro</h2>
@@ -327,7 +327,7 @@ export default function App() {
                   </div>
                   <button 
                     onClick={signIn}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl shadow-lg transition-all font-bold flex items-center justify-center gap-3"
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-xl shadow-lg transition-all font-bold flex items-center justify-center gap-3"
                   >
                     <LogIn className="w-5 h-5" />
                     <span>Get Started</span>
@@ -341,7 +341,7 @@ export default function App() {
                 <button
                   onClick={() => setActiveTab('2d')}
                   className={`px-4 py-2 text-sm font-bold border-b-2 transition-colors ${
-                    activeTab === '2d' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'
+                    activeTab === '2d' ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-slate-500 hover:text-slate-700'
                   }`}
                 >
                   2D Cross-Section
@@ -349,7 +349,7 @@ export default function App() {
                 <button
                   onClick={() => setActiveTab('3d')}
                   className={`px-4 py-2 text-sm font-bold border-b-2 transition-colors ${
-                    activeTab === '3d' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'
+                    activeTab === '3d' ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-slate-500 hover:text-slate-700'
                   }`}
                 >
                   3D Tunnel View
@@ -370,17 +370,17 @@ export default function App() {
                 
                 <div className="flex-1 flex flex-col items-center gap-2">
                   <div 
-                    className="flex flex-col items-center cursor-ns-resize border-2 border-dashed border-blue-300 bg-blue-50/50 rounded-lg p-2 w-56 hover:bg-blue-100 transition-colors select-none"
+                    className="flex flex-col items-center cursor-ns-resize border-2 border-dashed border-emerald-300 bg-emerald-50/50 rounded-lg p-2 w-56 hover:bg-emerald-100 transition-colors select-none"
                     onWheel={handleWheel}
                     title="Scroll here to navigate sections. You can edit the chainage label."
                   >
-                    <span className="text-xs font-bold text-blue-600 uppercase">Scroll Area</span>
+                    <span className="text-xs font-bold text-emerald-600 uppercase">Scroll Area</span>
                     <span className="text-xs font-bold text-slate-500 uppercase mb-1">Section {currentIndex + 1} of {sections.length}</span>
                     <input 
                       type="text" 
                       value={sections[currentIndex]?.chainageLabel || `CH ${sections[currentIndex]?.chainage.toFixed(2)}`} 
                       onChange={handleEditChainageLabel}
-                      className="text-lg font-bold text-slate-800 bg-white border border-slate-300 rounded px-2 py-0.5 text-center w-full focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      className="text-lg font-bold text-slate-800 bg-white border border-slate-300 rounded px-2 py-0.5 text-center w-full focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                     />
                   </div>
                   <input
@@ -389,7 +389,7 @@ export default function App() {
                     max={sections.length - 1}
                     value={currentIndex}
                     onChange={(e) => setCurrentIndex(Number(e.target.value))}
-                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
                   />
                 </div>
                 
@@ -442,7 +442,7 @@ export default function App() {
                           <td className="px-6 py-3 font-medium">{p.elevation.toFixed(3)}</td>
                           <td className="px-6 py-3">
                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                              p.type === 'survey' ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500'
+                              p.type === 'survey' ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500'
                             }`}>
                               {p.type}
                             </span>
@@ -470,7 +470,7 @@ export default function App() {
                 </div>
                 <button 
                   onClick={() => setIsUploadModalOpen(true)}
-                  className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg shadow-md transition-all font-bold"
+                  className="mt-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg shadow-md transition-all font-bold"
                 >
                   Select File
                 </button>
@@ -542,7 +542,7 @@ export default function App() {
                   setIsUploadModalOpen(false);
                   fileInputRef.current?.click();
                 }}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg font-bold"
               >
                 Select File
               </button>
