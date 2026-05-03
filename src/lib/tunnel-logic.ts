@@ -296,7 +296,13 @@ export function processSurveyData(data: any[][], options: UploadOptions): Sectio
         chainageNum = km * 1000 + m;
         chainageLabel = `CH ${chainageNum.toFixed(2)}`;
       } else {
-        chainageNum = null; 
+        const parsed = parseFloat(text);
+        if (!isNaN(parsed)) {
+          chainageNum = parsed;
+          chainageLabel = `CH ${chainageNum.toFixed(2)}`;
+        } else {
+          chainageNum = null; 
+        }
       }
     } else {
       const pc = text.toUpperCase();
