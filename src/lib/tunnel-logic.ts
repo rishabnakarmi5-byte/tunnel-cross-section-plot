@@ -283,8 +283,9 @@ export function processSurveyData(data: any[][], options: UploadOptions): Sectio
     const elevation = parseFloat(row[colElev]);
     
     let textParts = [];
-    for (let c = 0; c < row.length; c++) {
-      if (c !== colEast && c !== colNorth && c !== colElev && row[c] !== undefined && row[c] !== null) {
+    const maxCoordCol = Math.max(colEast, colNorth, colElev);
+    for (let c = maxCoordCol + 1; c < row.length; c++) {
+      if (row[c] !== undefined && row[c] !== null) {
         textParts.push(String(row[c]));
       }
     }
