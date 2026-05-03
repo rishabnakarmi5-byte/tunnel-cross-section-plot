@@ -281,7 +281,14 @@ export function processSurveyData(data: any[][], options: UploadOptions): Sectio
     const easting = parseFloat(row[colEast]);
     const northing = parseFloat(row[colNorth]);
     const elevation = parseFloat(row[colElev]);
-    const text = colCode >= 0 ? String(row[colCode] || '').trim() : '';
+    
+    let textParts = [];
+    for (let c = 0; c < row.length; c++) {
+      if (c !== colEast && c !== colNorth && c !== colElev && row[c] !== undefined && row[c] !== null) {
+        textParts.push(String(row[c]));
+      }
+    }
+    const text = textParts.join(' ').trim();
 
     if (isNaN(easting) || isNaN(elevation)) continue;
 
@@ -334,7 +341,20 @@ export function processSurveyData(data: any[][], options: UploadOptions): Sectio
 
   const sections: SectionData[] = [];
 
+  // Pre-calculate Center points for Auto-Azimuth
+  const sectionCenters = new Map<string, { x: number, y: number }>();
   for (const key of sectionKeysOrder) {
+    const group = sectionsMap.get(key)!;
+    if (group.points.length === 0) continue;
+    let centerPt = group.points.find(p => /\bCC?\b/i.test(p.text));
+    if (!centerPt) {
+      centerPt = group.points[Math.floor(group.points.length / 2)]; 
+    }
+    sectionCenters.set(key, { x: centerPt.easting, y: centerPt.northing });
+  }
+
+  for (let i = 0; i < sectionKeysOrder.length; i++) {
+    const key = sectionKeysOrder[i];
     const group = sectionsMap.get(key)!;
     if (group.points.length === 0) continue;
 
@@ -350,18 +370,48 @@ export function processSurveyData(data: any[][], options: UploadOptions): Sectio
         centerPt = group.points[Math.floor(group.points.length / 2)]; 
       }
 
-      group.points.forEach(p => {
-        const d = Math.hypot(p.easting - centerPt!.easting, p.northing - centerPt!.northing);
+      // Calculate Heading Normal Vector (Nx, Ny)
+      let Nx = 1; let Ny = 0; // Default if only 1 chainage
+      if (sectionKeysOrder.length > 1) {
+        let prevC = i > 0 ? sectionCenters.get(sectionKeysOrder[i - 1])! : null;
+        let nextC = i < sectionKeysOrder.length - 1 ? sectionCenters.get(sectionKeysOrder[i + 1])! : null;
         
-        let localEasting = d;
+        let Tx = 0, Ty = 1;
+        if (prevC && nextC) {
+          Tx = nextC.x - prevC.x;
+          Ty = nextC.y - prevC.y;
+        } else if (prevC) {
+          Tx = centerPt.easting - prevC.x;
+          Ty = centerPt.northing - prevC.y;
+        } else if (nextC) {
+          Tx = nextC.x - centerPt.easting;
+          Ty = nextC.y - centerPt.northing;
+        }
+        
+        const len = Math.hypot(Tx, Ty);
+        if (len > 0) {
+          Tx /= len;
+          Ty /= len;
+          // Normal to the right of forward vector T
+          Nx = Ty;
+          Ny = -Tx;
+        }
+      }
+
+      group.points.forEach(p => {
+        let localEasting = 0;
+        
         if (/\bL\b/i.test(p.text)) {
-          localEasting = -d;
+          localEasting = -Math.hypot(p.easting - centerPt!.easting, p.northing - centerPt!.northing);
+        } else if (/\bR\b/i.test(p.text)) {
+          localEasting = Math.hypot(p.easting - centerPt!.easting, p.northing - centerPt!.northing);
         } else if (/\bCC?\b/i.test(p.text) || p === centerPt) {
           localEasting = 0;
-        } else if (/\bR\b/i.test(p.text)) {
-          localEasting = d;
         } else {
-          localEasting = d; // Default positive if unknown
+          // Auto-calculate using dot product with Normal
+          const dx = p.easting - centerPt!.easting;
+          const dy = p.northing - centerPt!.northing;
+          localEasting = dx * Nx + dy * Ny;
         }
         
         const eastingVal = options.flipSides ? -1 * localEasting : localEasting;
