@@ -419,40 +419,42 @@ export default function App() {
               )}
 
               {/* Data Table */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-slate-400" />
-                  <span className="font-bold text-slate-700">Survey Points</span>
-                </div>
-                <div className="max-h-60 overflow-y-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-slate-50 text-slate-500 font-medium sticky top-0">
-                      <tr>
-                        <th className="px-6 py-3">Point</th>
-                        <th className="px-6 py-3">Easting (Offset)</th>
-                        <th className="px-6 py-3">Elevation</th>
-                        <th className="px-6 py-3">Type</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {sections[currentIndex].points.map((p, i) => (
-                        <tr key={i} className="hover:bg-slate-50 transition-colors">
-                          <td className="px-6 py-3 text-slate-400 font-mono">{i + 1}</td>
-                          <td className="px-6 py-3 font-medium">{p.easting.toFixed(3)}</td>
-                          <td className="px-6 py-3 font-medium">{p.elevation.toFixed(3)}</td>
-                          <td className="px-6 py-3">
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                              p.type === 'survey' ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500'
-                            }`}>
-                              {p.type}
-                            </span>
-                          </td>
+              {sections[currentIndex] && (
+                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-slate-400" />
+                    <span className="font-bold text-slate-700">Survey Points</span>
+                  </div>
+                  <div className="max-h-60 overflow-y-auto">
+                    <table className="w-full text-left text-sm">
+                      <thead className="bg-slate-50 text-slate-500 font-medium sticky top-0">
+                        <tr>
+                          <th className="px-6 py-3">Point</th>
+                          <th className="px-6 py-3">Easting (Offset)</th>
+                          <th className="px-6 py-3">Elevation</th>
+                          <th className="px-6 py-3">Type</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {sections[currentIndex].points.map((p, i) => (
+                          <tr key={i} className="hover:bg-slate-50 transition-colors">
+                            <td className="px-6 py-3 text-slate-400 font-mono">{i + 1}</td>
+                            <td className="px-6 py-3 font-medium">{p.easting.toFixed(3)}</td>
+                            <td className="px-6 py-3 font-medium">{p.elevation.toFixed(3)}</td>
+                            <td className="px-6 py-3">
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                p.type === 'survey' ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500'
+                              }`}>
+                                {p.type}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
+              )}
                 </>
               ) : (
                 <Tunnel3DView sections={sections} config={config} />
