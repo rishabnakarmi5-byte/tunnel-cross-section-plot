@@ -346,7 +346,7 @@ export function processSurveyData(data: any[][], options: UploadOptions): Sectio
   for (const key of sectionKeysOrder) {
     const group = sectionsMap.get(key)!;
     if (group.points.length === 0) continue;
-    let centerPt = group.points.find(p => /\bCC?\b/i.test(p.text));
+    let centerPt = group.points.find(p => /\b(?:C|CC|CL)\b/i.test(p.text));
     if (!centerPt) {
       centerPt = group.points[Math.floor(group.points.length / 2)]; 
     }
@@ -365,7 +365,7 @@ export function processSurveyData(data: any[][], options: UploadOptions): Sectio
     const finalPoints: { easting: number; elevation: number; type: 'survey' | 'inferred' | 'center' | 'manual' }[] = [];
 
     if (isGlobal) {
-      let centerPt = group.points.find(p => /\bCC?\b/i.test(p.text));
+      let centerPt = group.points.find(p => /\b(?:C|CC|CL)\b/i.test(p.text));
       if (!centerPt) {
         centerPt = group.points[Math.floor(group.points.length / 2)]; 
       }
@@ -405,7 +405,7 @@ export function processSurveyData(data: any[][], options: UploadOptions): Sectio
           localEasting = -Math.hypot(p.easting - centerPt!.easting, p.northing - centerPt!.northing);
         } else if (/\bR\b/i.test(p.text)) {
           localEasting = Math.hypot(p.easting - centerPt!.easting, p.northing - centerPt!.northing);
-        } else if (/\bCC?\b/i.test(p.text) || p === centerPt) {
+        } else if (/\b(?:C|CC|CL)\b/i.test(p.text) || p === centerPt) {
           localEasting = 0;
         } else {
           // Auto-calculate using dot product with Normal
