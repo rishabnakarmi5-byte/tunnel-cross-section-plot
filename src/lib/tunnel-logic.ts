@@ -229,65 +229,76 @@ export function processSurveyData(data: any[][], flipSides: boolean): SectionDat
   const sectionsMap = new Map<string, {
     chainage: number;
     chainageLabel: string;
-    points: { easting: number; northing: number; elevation: number; text: string; isNewFormat: boolean }[]
+    points: { easting: number; northing: number; elevation: number; text: string; isGlobal: boolean }[]
   }>();
 
   const sectionKeysOrder: string[] = [];
 
   if (!data || data.length === 0) return [];
 
-  // Detect format from first row
-  const firstRow = data[0];
-  let isNewFormat = true;
-  
+  let hasHeaders = false;
   let colEast = -1;
   let colNorth = -1;
   let colElev = -1;
   let colCode = -1;
 
+  const firstRow = data[0];
   if (firstRow && firstRow.some((cell: any) => typeof cell === 'string' && cell.toLowerCase().includes('easting'))) {
-    isNewFormat = false;
+    hasHeaders = true;
     firstRow.forEach((cell: any, idx: number) => {
       if (typeof cell !== 'string') return;
       const lower = cell.toLowerCase();
-      if (lower.includes('easting')) colEast = idx;
-      if (lower.includes('northing')) colNorth = idx;
-      if (lower.includes('elevation')) colElev = idx;
+      if (lower.includes('easting') || lower.includes('x')) colEast = idx;
+      if (lower.includes('northing') || lower.includes('y')) colNorth = idx;
+      if (lower.includes('elevation') || lower.includes('z') || lower.includes('elev')) colElev = idx;
       if (lower.includes('point code') || lower.includes('code') || lower.includes('pointcode')) colCode = idx;
     });
   }
 
-  // Iterate rows
-  const startIndex = isNewFormat ? 0 : 1;
+  // Determine indices if no headers
+  if (!hasHeaders) {
+    // Assuming standard layout from user: [Serial, Global X, Global Y, Elev, Text]
+    // If length is 4, maybe no serial.
+    const sampleRow = data.find(r => r && r.length >= 4 && !isNaN(parseFloat(r[1])));
+    if (sampleRow) {
+      if (sampleRow.length >= 5) {
+        colEast = 1; colNorth = 2; colElev = 3; colCode = 4;
+      } else {
+        colEast = 0; colNorth = 1; colElev = 2; colCode = 3;
+      }
+    }
+  }
+
+  const startIndex = hasHeaders ? 1 : 0;
+  
+  // First pass to determine if it's Global Coordinates by looking at magnitude
+  let isGlobalCoords = false;
+  for (let i = startIndex; i < Math.min(startIndex + 10, data.length); i++) {
+    const row = data[i];
+    if (!row || row.length < 3) continue;
+    const eastVal = parseFloat(row[colEast]);
+    if (!isNaN(eastVal) && Math.abs(eastVal) > 5000) {
+      isGlobalCoords = true;
+      break;
+    }
+  }
+
   for (let i = startIndex; i < data.length; i++) {
     const row = data[i];
     if (!row || row.length < 3) continue;
 
-    let easting: number;
-    let northing: number;
-    let elevation: number;
-    let text: string;
-
-    if (isNewFormat) {
-      if (row.length < 4) continue;
-      easting = parseFloat(row[1]);
-      northing = parseFloat(row[2]);
-      elevation = parseFloat(row[3]);
-      text = String(row[4] || '').trim();
-    } else {
-      easting = parseFloat(row[colEast]);
-      northing = parseFloat(row[colNorth]);
-      elevation = parseFloat(row[colElev]);
-      text = colCode >= 0 ? String(row[colCode] || '').trim() : '';
-    }
+    const easting = parseFloat(row[colEast]);
+    const northing = parseFloat(row[colNorth]);
+    const elevation = parseFloat(row[colElev]);
+    const text = colCode >= 0 ? String(row[colCode] || '').trim() : '';
 
     if (isNaN(easting) || isNaN(elevation)) continue;
 
     let chainageLabel = text;
     let chainageNum: number | null = null;
 
-    if (isNewFormat) {
-      const match = text.match(/(?:CH[O0\.]?\s*)?(\d+)\+(\d+)_(\d+)M?/i);
+    if (isGlobalCoords) {
+      const match = text.match(/(?:CH[O0\.]?\s*)?(\d+)\+(\d+)[_\.](\d+)M?/i);
       if (match) {
         const km = parseFloat(match[1] || '0');
         const m = parseFloat(`${match[2]}.${match[3]}`);
@@ -314,14 +325,14 @@ export function processSurveyData(data: any[][], flipSides: boolean): SectionDat
 
     if (!sectionsMap.has(key)) {
       sectionsMap.set(key, {
-        chainage: chainageNum !== null ? chainageNum : sectionsMap.size * -1, 
+        chainage: chainageNum !== null ? chainageNum : sectionsMap.size * -10000, 
         chainageLabel: chainageLabel,
         points: []
       });
       sectionKeysOrder.push(key);
     }
 
-    sectionsMap.get(key)!.points.push({ easting, northing, elevation, text, isNewFormat });
+    sectionsMap.get(key)!.points.push({ easting, northing, elevation, text, isGlobal: isGlobalCoords });
   }
 
   const sections: SectionData[] = [];
@@ -330,13 +341,13 @@ export function processSurveyData(data: any[][], flipSides: boolean): SectionDat
     const group = sectionsMap.get(key)!;
     if (group.points.length === 0) continue;
 
-    const isNewFormatGroup = group.points[0].isNewFormat;
+    const isGlobal = group.points[0].isGlobal;
     
     let closestEasting = Infinity;
     let centerSurveyElev = 0;
     const finalPoints: { easting: number; elevation: number; type: 'survey' | 'inferred' | 'center' | 'manual' }[] = [];
 
-    if (isNewFormatGroup) {
+    if (isGlobal) {
       let centerPt = group.points.find(p => /\bCC?\b/i.test(p.text));
       if (!centerPt) {
         centerPt = group.points[Math.floor(group.points.length / 2)]; 
@@ -353,10 +364,7 @@ export function processSurveyData(data: any[][], flipSides: boolean): SectionDat
         } else if (/\bR\b/i.test(p.text)) {
           localEasting = d;
         } else {
-          // If no label, we try to guess based on X coordinate relative to center?
-          // Since it's global coords, we don't know the tunnel azimuth easily.
-          // We'll leave it as positive.
-          localEasting = d;
+          localEasting = d; // Default positive if unknown
         }
         
         const eastingVal = flipSides ? -1 * localEasting : localEasting;
