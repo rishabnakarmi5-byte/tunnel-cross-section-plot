@@ -39,6 +39,9 @@ export const Tunnel3DView: React.FC<{ sections: SectionData[], config: TunnelCon
     const surfaceZ: number[][] = [];
 
     sections.forEach(sec => {
+      // Skip sections with invalid chainage (NaN) or no points
+      if (isNaN(sec.chainage) || sec.chainage < -9000 || sec.points.length === 0) return;
+
       // Survey points
       sec.points.forEach(p => {
         surveyX.push(p.easting);
