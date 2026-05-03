@@ -304,9 +304,10 @@ export function processSurveyData(data: any[][], options: UploadOptions): Sectio
         chainageNum = km * 1000 + m;
         chainageLabel = `CH ${chainageNum.toFixed(2)}`;
       } else {
-        const parsed = parseFloat(text);
-        if (!isNaN(parsed)) {
-          chainageNum = parsed;
+        // Fallback: extract leading number, ignore trailing C/CL/CC/L/R suffixes
+        const numMatch = text.match(/^([\d.]+)\s*(?:[CLR]+|CL|CC|C)?\s*$/i);
+        if (numMatch) {
+          chainageNum = parseFloat(numMatch[1]);
           chainageLabel = `CH ${chainageNum.toFixed(2)}`;
         } else {
           chainageNum = null; 
