@@ -242,11 +242,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, sections, s
                 key={shape}
                 onClick={() => handleShapeChange(shape)}
                 title={meta.description}
-                className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border transition-all text-center ${
-                  isActive
+                className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border transition-all text-center ${isActive
                     ? `${acc.border} bg-slate-700 text-white border-2`
                     : `border-slate-700 bg-slate-800 text-slate-300 border ${acc.card}`
-                }`}
+                  }`}
               >
                 <div className={isActive ? 'text-white' : 'text-slate-400'}>
                   {SHAPE_ICONS[shape]}
@@ -276,9 +275,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, sections, s
                 <div
                   key={p.id}
                   onClick={() => loadProfile(p.id)}
-                  className={`group flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-all ${
-                    isActive ? 'bg-slate-600 border border-slate-500' : 'bg-slate-800 hover:bg-slate-700 border border-slate-700'
-                  }`}
+                  className={`group flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-all ${isActive ? 'bg-slate-600 border border-slate-500' : 'bg-slate-800 hover:bg-slate-700 border border-slate-700'
+                    }`}
                 >
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-bold text-white truncate">{p.config.name}</p>
@@ -376,6 +374,31 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, sections, s
             Bore diameter = 2 × radius = <span className="text-slate-300 font-bold">{(config.archRadius * 2).toFixed(2)} m</span>
           </p>
         )}
+
+        {/* ── Excavation Reference ── */}
+        <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl space-y-2">
+          <div className="flex items-center gap-2">
+            <Mountain className="w-3 h-3 text-blue-400" />
+            <span className="text-[10px] font-bold text-blue-300 uppercase tracking-widest">Excavation Refs</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-0.5">
+              <p className="text-[8px] text-slate-500 uppercase font-bold">Wall (Bot to SPL)</p>
+              <p className="text-xs font-bold text-white">
+                {(config.wallHeight + config.liningThicknessInvert).toFixed(2)} m
+              </p>
+            </div>
+            <div className="space-y-0.5">
+              <p className="text-[8px] text-slate-500 uppercase font-bold">Total (Excavation)</p>
+              <p className="text-xs font-bold text-blue-400">
+                {(config.wallHeight + config.liningThicknessInvert + config.archRadius + config.liningThicknessOvert).toFixed(2)} m
+              </p>
+            </div>
+          </div>
+          <p className="text-[8px] text-slate-500 leading-tight italic">
+            *Reference for digging phase (from excavation bottom)
+          </p>
+        </div>
 
         <button
           onClick={() => setSections([generateDesignSection(config)])}

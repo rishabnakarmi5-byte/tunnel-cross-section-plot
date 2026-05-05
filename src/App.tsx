@@ -259,7 +259,15 @@ export default function App() {
                   </button>
 
                   <button 
-                    onClick={() => setIsFlipped(!isFlipped)}
+                    onClick={() => {
+                      const newFlipped = !isFlipped;
+                      setIsFlipped(newFlipped);
+                      // Reactively flip all existing survey points
+                      setSections(prev => prev.map(sec => ({
+                        ...sec,
+                        points: sec.points.map(p => ({ ...p, easting: -p.easting }))
+                      })));
+                    }}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-md border transition-colors text-sm font-medium ${
                       isFlipped ? 'bg-orange-50 border-orange-200 text-orange-600' : 'bg-slate-50 border-slate-200 text-slate-600'
                     }`}
