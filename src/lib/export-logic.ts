@@ -9,6 +9,9 @@ export function exportToDXF(sections: SectionData[], config: TunnelConfig) {
   const drawing = new Drawing();
   
   // Create professional layers with standard ACI colors
+  // Define CENTER linetype to prevent AutoCAD from crashing
+  drawing.addLineType('CENTER', 'Center ____ _ ____', [2, -0.5, 0.2, -0.5]);
+  
   drawing.addLayer('L-CENTERLINE', Drawing.ACI.CYAN, 'CENTER');
   drawing.addLayer('L-DESIGN-OUTER', Drawing.ACI.GREEN, 'CONTINUOUS');
   drawing.addLayer('L-DESIGN-INNER', Drawing.ACI.MAGENTA, 'CONTINUOUS');
@@ -23,48 +26,53 @@ export function exportToDXF(sections: SectionData[], config: TunnelConfig) {
   let xOffset = 0;
 
   sections.forEach((section, index) => {
-    const invertBottom = getDesignInvertBottom(section.chainage, config.slopeSegments);
-    if (invertBottom === null) return;
+    try {
+      const invertBottom = getDesignInvertBottom(section.chainage, config.slopeSegments);
+      if (invertBottom === null) return;
 
-    const { pointsIn, pointsOut } = getGantryShapes(invertBottom, config);
-    const results = getCalculationResults(section, config);
-    if (!results) return;
+      const { pointsIn, pointsOut } = getGantryShapes(invertBottom, config);
+      const results = getCalculationResults(section, config);
+      if (!results) return;
 
-    const invertTop = invertBottom + config.liningThicknessInvert;
-    const splY = invertTop + config.wallHeight;
-    const maxInnerY = pointsIn.reduce((max, p) => Math.max(max, p.y), -Infinity);
-    const maxOuterY = pointsOut.reduce((max, p) => Math.max(max, p.y), -Infinity);
+      const invertTop = invertBottom + config.liningThicknessInvert;
+      const splY = invertBottom + config.wallHeight;
+      const maxInnerY = pointsIn.length > 0 ? pointsIn.reduce((max, p) => Math.max(max, p.y), -Infinity) : invertBottom;
+      const maxOuterY = pointsOut.length > 0 ? pointsOut.reduce((max, p) => Math.max(max, p.y), -Infinity) : invertBottom;
 
-    // 1. Center Line (CL)
-    drawing.setActiveLayer('L-CENTERLINE');
-    drawing.drawLine(xOffset, invertBottom - 2, xOffset, maxOuterY + 4);
-    drawing.setActiveLayer('L-ANNOTATION');
-    drawing.drawText(xOffset, maxOuterY + 5, 0.4, 0, 'CL', 'center', 'bottom');
+      // 1. Center Line (CL)
+      drawing.setActiveLayer('L-CENTERLINE');
+      drawing.drawLine(xOffset, invertBottom - 2, xOffset, maxOuterY + 4);
+      drawing.setActiveLayer('L-ANNOTATION');
+      drawing.drawText(xOffset, maxOuterY + 5, 0.4, 0, 'CL', 'center', 'bottom');
 
-    // 2. Design Profiles
-    drawing.setActiveLayer('L-DESIGN-OUTER');
-    drawing.drawPolyline(pointsOut.map(p => [p.x + xOffset, p.y]), true);
-    
-    drawing.setActiveLayer('L-DESIGN-INNER');
-    drawing.drawPolyline(pointsIn.map(p => [p.x + xOffset, p.y]), true);
+      // 2. Design Profiles
+      if (pointsOut.length > 0) {
+        drawing.setActiveLayer('L-DESIGN-OUTER');
+        drawing.drawPolyline(pointsOut.map(p => [p.x + xOffset, p.y]), true);
+      }
+      
+      if (pointsIn.length > 0) {
+        drawing.setActiveLayer('L-DESIGN-INNER');
+        drawing.drawPolyline(pointsIn.map(p => [p.x + xOffset, p.y]), true);
+      }
 
-    // 3. Survey Rock Line
-    drawing.setActiveLayer('L-SURVEY-ROCK');
-    drawing.drawPolyline(section.points.map(p => [p.easting + xOffset, p.elevation]), true);
+      // 3. Survey Rock Line
+      if (section.points && section.points.length > 1) {
+        drawing.setActiveLayer('L-SURVEY-ROCK');
+        drawing.drawPolyline(section.points.map(p => [p.easting + xOffset, p.elevation]), true);
+      }
 
-    // 4. Concrete Lining Hatch (Simulated)
-    drawing.setActiveLayer('L-HATCH');
-    const hatchSpacing = 0.15;
-    const wMax = Math.max(config.width / 2, config.archRadius) + 1;
-    for (let d = -wMax; d <= wMax; d += hatchSpacing) {
-      // Very simplified: draw small diagonal lines in the lining zone
-      // In a real DXF writer we'd use HATCH, but we can draw dots/lines for visual effect
-      pointsIn.forEach((p, i) => {
-        if (i % 8 === 0) { // Sparse "stipple" for concrete
-          drawing.drawLine(p.x + xOffset, p.y, p.x + xOffset + 0.05, p.y + 0.05);
-        }
-      });
-    }
+      // 4. Concrete Lining Hatch (Simulated)
+      drawing.setActiveLayer('L-HATCH');
+      const hatchSpacing = 0.15;
+      const wMax = Math.max(config.width / 2, config.archRadius) + 1;
+      for (let d = -wMax; d <= wMax; d += hatchSpacing) {
+        pointsIn.forEach((p, i) => {
+          if (i % 8 === 0) {
+            drawing.drawLine(p.x + xOffset, p.y, p.x + xOffset + 0.05, p.y + 0.05);
+          }
+        });
+      }
 
     // 5. Elevation Scales (Left and Right)
     drawing.setActiveLayer('L-SCALE');
@@ -134,6 +142,9 @@ export function exportToDXF(sections: SectionData[], config: TunnelConfig) {
     // Title
     drawing.drawText(xOffset, boxY - 1.5, 0.5, 0, config.name.toUpperCase(), 'center', 'top');
 
+    } catch (err) {
+      console.error(`Error exporting section at chainage ${section.chainage}:`, err);
+    }
     xOffset += cadSpacing;
   });
 
