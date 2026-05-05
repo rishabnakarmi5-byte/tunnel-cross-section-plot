@@ -4,7 +4,7 @@ import { Sidebar } from './components/Sidebar';
 import { CrossSectionView } from './components/CrossSectionView';
 import { PointsPanel } from './components/PointsPanel';
 import { TunnelConfig, SectionData, UploadOptions } from './types';
-import { processSurveyData } from './lib/tunnel-logic';
+import { processSurveyData, generateDesignSection } from './lib/tunnel-logic';
 import { exportToDXF, exportToPDF } from './lib/export-logic';
 import { createDefaultConfig } from './lib/templates';
 import { Tunnel3DView } from './components/Tunnel3DView';
@@ -470,12 +470,21 @@ export default function App() {
                   <h3 className="text-slate-600 font-bold text-lg">No Survey Data</h3>
                   <p className="text-sm">Upload a CSV or Excel file containing Easting, Northing, and Elevation columns to begin analysis.</p>
                 </div>
-                <button 
-                  onClick={() => setIsUploadModalOpen(true)}
-                  className="mt-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg shadow-md transition-all font-bold"
-                >
-                  Select File
-                </button>
+                <div className="flex gap-3 mt-2">
+                  <button 
+                    onClick={() => setIsUploadModalOpen(true)}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg shadow-md transition-all font-bold"
+                  >
+                    Select File
+                  </button>
+                  <button 
+                    onClick={() => setSections([generateDesignSection(config)])}
+                    className="bg-slate-700 hover:bg-slate-800 text-white px-6 py-2 rounded-lg shadow-md transition-all font-bold flex items-center gap-2"
+                  >
+                    <Layers className="w-4 h-4" />
+                    Preview Design
+                  </button>
+                </div>
                 {uploadError && (
                   <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded-lg text-red-600 text-xs max-w-xs">
                     {uploadError}

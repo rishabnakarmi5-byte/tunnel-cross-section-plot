@@ -51,7 +51,7 @@ const SHAPE_GEOMETRY: Record<TunnelShape, Omit<TunnelConfig, 'id' | 'name' | 'in
     width: 4.83,              // invert (bottom) width
     wallHeight: 2.71,         // invert top to spring line
     archRadius: 3.05,         // independent; spring-line width = 2 × R = 6.10
-    liningThicknessOvert: 0.05,
+    liningThicknessOvert: 0.10, // Updated from 0.05 to match user drawing
     liningThicknessInvert: 0.25,
     wallRadius: 6.25,         // independent; curves the walls below SPL
   },

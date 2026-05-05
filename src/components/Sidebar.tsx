@@ -5,6 +5,7 @@ import { db } from '../firebase';
 import { collection, doc, setDoc, onSnapshot, query, serverTimestamp, deleteDoc } from 'firebase/firestore';
 import { User as FirebaseUser } from 'firebase/auth';
 import { SHAPE_META, applyShapeTemplate, createDefaultConfig } from '../lib/templates';
+import { generateDesignSection } from '../lib/tunnel-logic';
 
 interface SidebarProps {
   config: TunnelConfig;
@@ -375,6 +376,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, sections, s
             Bore diameter = 2 × radius = <span className="text-slate-300 font-bold">{(config.archRadius * 2).toFixed(2)} m</span>
           </p>
         )}
+
+        <button
+          onClick={() => setSections([generateDesignSection(config)])}
+          className="w-full mt-4 flex items-center justify-center gap-2 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 py-2 rounded-lg text-xs font-bold transition-all"
+        >
+          <Layers className="w-3.5 h-3.5" />
+          Generate Design Profile
+        </button>
       </div>
 
       {/* ── Slope Segments ── */}

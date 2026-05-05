@@ -23,7 +23,7 @@ export function getDesignInvertBottom(chainage: number, segments: SlopeSegment[]
   return null;
 }
 
-function generateArcPoints(p1: {x: number, y: number}, p2: {x: number, y: number}, radius: number, numPoints: number) {
+function generateArcPoints(p1: { x: number, y: number }, p2: { x: number, y: number }, radius: number, numPoints: number) {
   const d = Math.hypot(p2.x - p1.x, p2.y - p1.y);
   if (d === 0 || !radius || radius <= 0 || d > 2 * radius) {
     return [p1, p2]; // Fallback to straight line
@@ -41,7 +41,7 @@ function generateArcPoints(p1: {x: number, y: number}, p2: {x: number, y: number
 
   let startAngle = Math.atan2(p1.y - cy, p1.x - cx);
   let endAngle = Math.atan2(p2.y - cy, p2.x - cx);
-  
+
   // Force counter-clockwise minor arc
   if (endAngle < startAngle) endAngle += 2 * Math.PI;
   if (endAngle - startAngle > Math.PI) {
@@ -458,4 +458,26 @@ export function processSurveyData(data: any[][], options: UploadOptions): Sectio
   }
 
   return sections;
+}
+
+/**
+ * Generates a mock survey section based exactly on the design geometry (outer/excavation profile).
+ * Useful for previewing the design before uploading real survey data.
+ */
+export function generateDesignSection(config: TunnelConfig): SectionData {
+  const chainage = config.slopeSegments[0]?.startChainage || 0;
+  const invertBottom = getDesignInvertBottom(chainage, config.slopeSegments, config.initialInvertLevel) || config.initialInvertLevel;
+  
+  const { pointsOut } = getGantryShapes(invertBottom, config);
+  
+  return {
+    chainage,
+    centerSurveyElev: invertBottom + config.liningThicknessInvert + config.wallHeight + config.archRadius,
+    closestEasting: 0,
+    points: pointsOut.map(p => ({
+      easting: p.x,
+      elevation: p.y,
+      type: 'inferred'
+    }))
+  };
 }
