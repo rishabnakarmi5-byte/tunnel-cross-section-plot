@@ -286,6 +286,10 @@ export const CrossSectionView: React.FC<CrossSectionViewProps> = ({ section, con
               <span className="text-xs text-slate-500">Excavated (Rock)</span>
               <span className="text-sm font-bold text-slate-700">{results.areaRock.toFixed(2)}</span>
             </div>
+            <div className="flex justify-between items-center border-b border-slate-50 pb-1 mb-1">
+              <span className="text-xs text-slate-500">Design Excavation</span>
+              <span className="text-sm font-bold text-slate-700">{results.areaOuter.toFixed(2)}</span>
+            </div>
             <div className="flex justify-between items-center">
               <span className="text-xs text-slate-500">Lining (Actual)</span>
               <span className="text-sm font-bold text-emerald-600">{results.areaConcreteActual.toFixed(2)}</span>
