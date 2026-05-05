@@ -8,7 +8,7 @@ import { processSurveyData, generateDesignSection } from './lib/tunnel-logic';
 import { exportToDXF, exportToPDF } from './lib/export-logic';
 import { createDefaultConfig } from './lib/templates';
 import { Tunnel3DView } from './components/Tunnel3DView';
-import { Upload, FileText, Download, ChevronLeft, ChevronRight, HardHat, RefreshCw, FileDown, LogIn, LogOut, User } from 'lucide-react';
+import { Upload, FileText, Download, ChevronLeft, ChevronRight, HardHat, RefreshCw, FileDown, LogIn, LogOut, User, Layers } from 'lucide-react';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { auth, signIn, logOut } from './firebase';
