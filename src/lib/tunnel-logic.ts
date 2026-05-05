@@ -7,15 +7,19 @@ export function getDesignInvertBottom(chainage: number, segments: SlopeSegment[]
 
   for (let i = 0; i < segments.length; i++) {
     const seg = segments[i];
+    const isReverse = seg.startChainage > seg.endChainage;
+    const minCh = isReverse ? seg.endChainage : seg.startChainage;
+    const maxCh = isReverse ? seg.startChainage : seg.endChainage;
 
     if (i > 0) {
       const prevSeg = segments[i - 1];
-      const distPrev = prevSeg.endChainage - prevSeg.startChainage;
+      const distPrev = Math.abs(prevSeg.endChainage - prevSeg.startChainage);
       currentStartEl = currentStartEl + (distPrev * prevSeg.slope);
     }
 
-    if (chainage >= seg.startChainage && chainage <= seg.endChainage) {
-      const dist = chainage - seg.startChainage;
+    if (chainage >= minCh && chainage <= maxCh) {
+      // Distance is always relative to the START chainage of the segment
+      const dist = Math.abs(chainage - seg.startChainage);
       return currentStartEl + (dist * seg.slope);
     }
   }

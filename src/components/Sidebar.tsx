@@ -469,11 +469,31 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, sections, s
                       value={seg.slope !== 0 ? parseFloat((1 / Math.abs(seg.slope)).toFixed(4)) : 0}
                       onChange={e => {
                         const v = parseFloat(e.target.value);
-                        updateSlopeSegment(seg.id, { slope: v !== 0 ? -1 / v : 0 });
+                        const sign = seg.slope >= 0 ? 1 : -1;
+                        updateSlopeSegment(seg.id, { slope: v !== 0 ? sign * (1 / v) : 0 });
                       }}
                       className="w-full bg-slate-700 border border-slate-600 text-white text-xs px-2 py-1.5 rounded-lg focus:outline-none focus:border-emerald-500"
                     />
                   </label>
+                  <div className="flex flex-col gap-1">
+                    <FieldLabel>Type</FieldLabel>
+                    <div className="flex bg-slate-700 rounded-lg p-0.5 border border-slate-600">
+                      <button 
+                        onClick={() => updateSlopeSegment(seg.id, { slope: -Math.abs(seg.slope) })}
+                        className={`flex-1 text-[8px] font-bold py-1 rounded-md transition-colors ${seg.slope <= 0 ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                      >
+                        Down
+                      </button>
+                      <button 
+                        onClick={() => updateSlopeSegment(seg.id, { slope: Math.abs(seg.slope) })}
+                        className={`flex-1 text-[8px] font-bold py-1 rounded-md transition-colors ${seg.slope > 0 ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                      >
+                        Up
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
                   {index === 0 && (
                     <label className="block space-y-1">
                       <FieldLabel>Start Elev</FieldLabel>
@@ -485,6 +505,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, sections, s
                       />
                     </label>
                   )}
+                  <button
+                    onClick={() => updateSlopeSegment(seg.id, { startChainage: seg.endChainage, endChainage: seg.startChainage })}
+                    className="mt-4 flex items-center justify-center gap-1.5 bg-slate-700 hover:bg-slate-600 text-[9px] font-bold text-slate-300 py-1.5 rounded-lg border border-slate-600 transition-colors"
+                  >
+                    <RefreshCw className="w-2.5 h-2.5" />
+                    Swap Direction
+                  </button>
                 </div>
               </div>
             ))}
