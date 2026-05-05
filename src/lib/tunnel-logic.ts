@@ -72,102 +72,91 @@ function generateArcPoints(p1: { x: number, y: number }, p2: { x: number, y: num
 }
 
 export function getGantryShapes(invertBottomElev: number, config: TunnelConfig) {
-  const { shape, width, wallHeight, archRadius, liningThicknessOvert, liningThicknessInvert } = config;
+  const { 
+    shape, 
+    width: excavationWidth, 
+    wallHeight: excavationWallHeight, 
+    archRadius: excavationArchRadius, 
+    liningThicknessOvert, 
+    liningThicknessInvert,
+    wallRadius: excavationWallRadius = 0
+  } = config;
+
   const invertTop = invertBottomElev + liningThicknessInvert;
+  const springY = invertBottomElev + excavationWallHeight;
+  const numPoints = 50;
 
   const pointsIn: { x: number; y: number }[] = [];
   const pointsOut: { x: number; y: number }[] = [];
 
-  if (shape === 'inverted-d') {
-    // Inner Shape
-    const numArchPoints = 50;
-    const rIn = archRadius;
-    for (let i = 0; i <= numArchPoints; i++) {
-      const theta = (i / numArchPoints) * Math.PI;
-      const x = rIn * Math.cos(theta);
-      const y = (invertTop + wallHeight) + rIn * Math.sin(theta);
-      pointsIn.push({ x: -x, y });
+  if (shape === 'horse-shoe') {
+    // 1. OUTER PROFILE (EXCAVATION) - Directly from user inputs
+    const rightInvertOut = { x: excavationWidth / 2, y: invertBottomElev };
+    const rightSpringOut = { x: excavationArchRadius, y: springY };
+    const leftSpringOut = { x: -excavationArchRadius, y: springY };
+    const leftInvertOut = { x: -excavationWidth / 2, y: invertBottomElev };
+
+    const rightWallOut = generateArcPoints(rightInvertOut, rightSpringOut, excavationWallRadius, numPoints);
+    pointsOut.push(...rightWallOut);
+    for (let i = 1; i <= numPoints; i++) {
+      const theta = (i / numPoints) * Math.PI;
+      pointsOut.push({ x: excavationArchRadius * Math.cos(theta), y: springY + excavationArchRadius * Math.sin(theta) });
     }
-    // Add bottom corners
-    pointsIn.push({ x: width / 2, y: invertTop });
-    pointsIn.push({ x: -width / 2, y: invertTop });
+    const leftWallOut = generateArcPoints(leftSpringOut, leftInvertOut, excavationWallRadius, numPoints);
+    pointsOut.push(...leftWallOut.slice(1));
 
-    // Outer Shape
-    const outerWidth = width + 2 * liningThicknessOvert;
-    const rOut = archRadius + liningThicknessOvert;
+    // 2. INNER PROFILE (FINISHED) - Offset inwards
+    const rIn = excavationArchRadius - liningThicknessOvert;
+    const rWallIn = excavationWallRadius > 0 ? excavationWallRadius - liningThicknessOvert : 0;
+    
+    // Width at invert top for finished line
+    // We calculate where the excavation wall is at elevation = invertTop
+    const rightWallOutSamples = generateArcPoints(rightInvertOut, rightSpringOut, excavationWallRadius, 200);
+    const outerPtAtInvertTop = rightWallOutSamples.reduce((best, p) => 
+      Math.abs(p.y - invertTop) < Math.abs(best.y - invertTop) ? p : best, rightWallOutSamples[0]);
+    
+    const finishedWidthAtInvertTop = (outerPtAtInvertTop.x - liningThicknessOvert) * 2;
 
-    for (let i = 0; i <= numArchPoints; i++) {
-      const theta = (i / numArchPoints) * Math.PI;
-      const x = rOut * Math.cos(theta);
-      const y = (invertTop + wallHeight) + rOut * Math.sin(theta);
-      pointsOut.push({ x: -x, y });
-    }
-    pointsOut.push({ x: outerWidth / 2, y: invertBottomElev });
-    pointsOut.push({ x: -outerWidth / 2, y: invertBottomElev });
+    const rightInvertIn = { x: finishedWidthAtInvertTop / 2, y: invertTop };
+    const rightSpringIn = { x: rIn, y: springY };
+    const leftSpringIn = { x: -rIn, y: springY };
+    const leftInvertIn = { x: -finishedWidthAtInvertTop / 2, y: invertTop };
 
-  } else if (shape === 'circular') {
-    // For circular: archRadius is the inner finished radius; center sits on invertTop
-    const rIn = archRadius;
-    const rOut = archRadius + liningThicknessOvert;
-    const numPoints = 100;
-    const centerY = invertTop + rIn; // bottom of circle rests on invert top
-    for (let i = 0; i <= numPoints; i++) {
-      const theta = (i / numPoints) * 2 * Math.PI;
-      pointsIn.push({ x: rIn * Math.cos(theta), y: centerY + rIn * Math.sin(theta) });
-      pointsOut.push({ x: rOut * Math.cos(theta), y: centerY + rOut * Math.sin(theta) });
-    }
-  } else if (shape === 'horse-shoe') {
-    // True horseshoe: semicircular arch (archRadius) on top of INCLINED/CURVED walls
-    // Spring-line width = 2 × archRadius (wider at top)
-    // Invert width = width (narrower at bottom)
-    const halfInvertW = width / 2;
-    const rIn = archRadius;
-    const springY = invertTop + wallHeight;
-    const numPoints = 50;
-    const wallRadius = config.wallRadius || 0;
-
-    // Inner shape
-    const rightInvert = { x: halfInvertW, y: invertTop };
-    const rightSpring = { x: rIn, y: springY };
-    const leftSpring = { x: -rIn, y: springY };
-    const leftInvert = { x: -halfInvertW, y: invertTop };
-
-    // Right wall
-    const rightWallPts = generateArcPoints(rightInvert, rightSpring, wallRadius, numPoints);
-    pointsIn.push(...rightWallPts);
-
-    // Arch
+    const rightWallIn = generateArcPoints(rightInvertIn, rightSpringIn, rWallIn, numPoints);
+    pointsIn.push(...rightWallIn);
     for (let i = 1; i <= numPoints; i++) {
       const theta = (i / numPoints) * Math.PI;
       pointsIn.push({ x: rIn * Math.cos(theta), y: springY + rIn * Math.sin(theta) });
     }
+    const leftWallIn = generateArcPoints(leftSpringIn, leftInvertIn, rWallIn, numPoints);
+    pointsIn.push(...leftWallIn.slice(1));
 
-    // Left wall
-    const leftWallPts = generateArcPoints(leftSpring, leftInvert, wallRadius, numPoints);
-    // skip the first point of leftWallPts because it's exactly the last point of the arch
-    pointsIn.push(...leftWallPts.slice(1));
-
-    // Outer shape: expand walls outward by liningThicknessOvert
-    const outerHalfInvertW = halfInvertW + liningThicknessOvert;
-    const rOut = rIn + liningThicknessOvert;
-    const outerSpringY = springY;
-    const outerWallRadius = wallRadius > 0 ? wallRadius + liningThicknessOvert : 0;
-
-    const outRightInvert = { x: outerHalfInvertW, y: invertBottomElev };
-    const outRightSpring = { x: rOut, y: outerSpringY };
-    const outLeftSpring = { x: -rOut, y: outerSpringY };
-    const outLeftInvert = { x: -outerHalfInvertW, y: invertBottomElev };
-
-    const outRightWallPts = generateArcPoints(outRightInvert, outRightSpring, outerWallRadius, numPoints);
-    pointsOut.push(...outRightWallPts);
-
-    for (let i = 1; i <= numPoints; i++) {
+  } else if (shape === 'inverted-d') {
+    for (let i = 0; i <= numPoints; i++) {
       const theta = (i / numPoints) * Math.PI;
-      pointsOut.push({ x: rOut * Math.cos(theta), y: outerSpringY + rOut * Math.sin(theta) });
+      pointsOut.push({ x: -excavationArchRadius * Math.cos(theta), y: springY + excavationArchRadius * Math.sin(theta) });
     }
+    pointsOut.push({ x: excavationWidth / 2, y: invertBottomElev });
+    pointsOut.push({ x: -excavationWidth / 2, y: invertBottomElev });
 
-    const outLeftWallPts = generateArcPoints(outLeftSpring, outLeftInvert, outerWallRadius, numPoints);
-    pointsOut.push(...outLeftWallPts.slice(1));
+    const rIn = excavationArchRadius - liningThicknessOvert;
+    const innerWidth = excavationWidth - 2 * liningThicknessOvert;
+    for (let i = 0; i <= numPoints; i++) {
+      const theta = (i / numPoints) * Math.PI;
+      pointsIn.push({ x: -rIn * Math.cos(theta), y: springY + rIn * Math.sin(theta) });
+    }
+    pointsIn.push({ x: innerWidth / 2, y: invertTop });
+    pointsIn.push({ x: -innerWidth / 2, y: invertTop });
+
+  } else if (shape === 'circular') {
+    const centerY = invertBottomElev + excavationArchRadius;
+    const rOut = excavationArchRadius;
+    const rIn = excavationArchRadius - liningThicknessOvert;
+    for (let i = 0; i <= numPoints; i++) {
+      const theta = (i / numPoints) * 2 * Math.PI;
+      pointsOut.push({ x: rOut * Math.cos(theta), y: centerY + rOut * Math.sin(theta) });
+      pointsIn.push({ x: rIn * Math.cos(theta), y: centerY + rIn * Math.sin(theta) });
+    }
   }
 
   return { pointsIn, pointsOut, invertTop };

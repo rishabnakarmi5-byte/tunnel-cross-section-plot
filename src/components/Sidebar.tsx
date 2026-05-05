@@ -310,7 +310,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, sections, s
         {/* Width — all shapes except circular (which uses archRadius as radius) */}
         {!isCircular && (
           <NumberInput
-            label={isHorseshoe ? "Invert Width (m)" : "Width (m)"}
+            label={isHorseshoe ? "Invert Width (m - Exc)" : "Width (m - Exc)"}
             value={config.width}
             onChange={v => updateConfig({ width: v })}
           />
@@ -318,7 +318,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, sections, s
 
         {/* Arch Radius — all shapes */}
         <NumberInput
-          label={isCircular ? 'Inner Radius (m)' : 'Arch Radius (m)'}
+          label={isCircular ? 'Arch Radius (m - Exc)' : 'Arch Radius (m - Exc)'}
           value={config.archRadius}
           onChange={v => updateConfig(isCircular ? { archRadius: v, width: v * 2 } : { archRadius: v })}
         />
@@ -326,7 +326,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, sections, s
         {/* Wall Height — inverted-d and horse-shoe only */}
         {!isCircular && (
           <NumberInput
-            label="Wall Height (m)"
+            label="Wall Height (Bot to SPL)"
             value={config.wallHeight}
             onChange={v => updateConfig({ wallHeight: v })}
           />
@@ -335,7 +335,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, sections, s
         {/* Wall Radius — horse-shoe only */}
         {isHorseshoe && (
           <NumberInput
-            label="Wall Radius (m)"
+            label="Wall Radius (m - Exc)"
             value={config.wallRadius || 0}
             onChange={v => updateConfig({ wallRadius: v })}
           />
@@ -366,12 +366,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, sections, s
         {/* Derived info for shapes */}
         {isHorseshoe && (
           <p className="text-[9px] text-slate-500">
-            Spring-line width = 2 × Arch Radius = <span className="text-slate-300 font-bold">{(config.archRadius * 2).toFixed(2)} m</span>
+            Excavation Width at SPL = 2 × Arch Radius = <span className="text-slate-300 font-bold">{(config.archRadius * 2).toFixed(2)} m</span>
           </p>
         )}
         {isCircular && (
           <p className="text-[9px] text-slate-500">
-            Bore diameter = 2 × radius = <span className="text-slate-300 font-bold">{(config.archRadius * 2).toFixed(2)} m</span>
+            Excavation Diameter = 2 × Arch Radius = <span className="text-slate-300 font-bold">{(config.archRadius * 2).toFixed(2)} m</span>
           </p>
         )}
 
@@ -383,20 +383,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, setConfig, sections, s
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-0.5">
-              <p className="text-[8px] text-slate-500 uppercase font-bold">Wall (Bot to SPL)</p>
+              <p className="text-[8px] text-slate-500 uppercase font-bold">Finished Wall (Inv to SPL)</p>
               <p className="text-xs font-bold text-white">
-                {(config.wallHeight + config.liningThicknessInvert).toFixed(2)} m
+                {(config.wallHeight - config.liningThicknessInvert).toFixed(2)} m
               </p>
             </div>
             <div className="space-y-0.5">
-              <p className="text-[8px] text-slate-500 uppercase font-bold">Total (Excavation)</p>
+              <p className="text-[8px] text-slate-500 uppercase font-bold">Total Exc Height</p>
               <p className="text-xs font-bold text-blue-400">
-                {(config.wallHeight + config.liningThicknessInvert + config.archRadius + config.liningThicknessOvert).toFixed(2)} m
+                {(config.wallHeight + config.archRadius).toFixed(2)} m
               </p>
             </div>
           </div>
           <p className="text-[8px] text-slate-500 leading-tight italic">
-            *Reference for digging phase (from excavation bottom)
+            *Verification dimensions based on Excavation inputs.
           </p>
         </div>
 
