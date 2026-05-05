@@ -252,6 +252,13 @@ export const CrossSectionView: React.FC<CrossSectionViewProps> = ({ section, con
               `${config.wallHeight.toFixed(2)}m to SPL`)}
           {drawDimY(tx(config.shape === 'circular' ? config.archRadius : Math.max(config.width / 2, config.archRadius)) + 40,
             invertTop, maxInnerY, `${(maxInnerY - invertTop).toFixed(2)}m to Crown`)}
+          
+          {/* Total Height Dimensions (from bottom of excavation) */}
+          {drawDimY(tx(-Math.max(config.width / 2, config.archRadius)) - 40,
+            invertBottom, maxInnerY, `${(maxInnerY - invertBottom).toFixed(2)}m (Finished)`)}
+          {drawDimY(tx(-Math.max(config.width / 2, config.archRadius)) - 60,
+            invertBottom, pointsOut.reduce((max, p) => Math.max(max, p.y), -Infinity), 
+            `${(pointsOut.reduce((max, p) => Math.max(max, p.y), -Infinity) - invertBottom).toFixed(2)}m (Excavation)`)}
 
           {/* Callout Arrows */}
           {designPtInLeft && (
