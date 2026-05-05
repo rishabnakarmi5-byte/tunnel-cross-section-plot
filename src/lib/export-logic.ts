@@ -62,85 +62,78 @@ export function exportToDXF(sections: SectionData[], config: TunnelConfig) {
         drawing.drawPolyline(section.points.map(p => [p.easting + xOffset, p.elevation]), true);
       }
 
-      // 4. Concrete Lining Hatch (Simulated)
-      drawing.setActiveLayer('L-HATCH');
-      const hatchSpacing = 0.15;
-      const wMax = Math.max(config.width / 2, config.archRadius) + 1;
-      for (let d = -wMax; d <= wMax; d += hatchSpacing) {
-        pointsIn.forEach((p, i) => {
-          if (i % 8 === 0) {
-            drawing.drawLine(p.x + xOffset, p.y, p.x + xOffset + 0.05, p.y + 0.05);
+      // 4. Concrete Lining Hatch (Removed as requested)
+      
+      // 5. Elevation Scales (Left and Right)
+      drawing.setActiveLayer('L-SCALE');
+      const scaleXLeft = xOffset - (config.width/2 + 3);
+      const scaleXRight = xOffset + (config.width/2 + 3);
+      const elevMin = Math.floor(invertBottom - 2);
+      const elevMax = Math.ceil(maxOuterY + 3);
+
+      [scaleXLeft, scaleXRight].forEach(sx => {
+        drawing.drawLine(sx, elevMin, sx, elevMax);
+        for (let el = elevMin; el <= elevMax; el = Number((el + 0.1).toFixed(1))) {
+          const isMajor = el % 5 === 0;
+          const isMinor = el % 1 === 0;
+          const tickL = isMajor ? 1.0 : (isMinor ? 0.4 : 0.2);
+          
+          drawing.drawLine(sx - tickL/2, el, sx + tickL/2, el);
+          if (isMajor) {
+            drawing.drawText(sx + (sx < xOffset ? -1.2 : 1.2), el, 0.4, 0, el.toFixed(0), sx < xOffset ? 'right' : 'left', 'middle');
           }
-        });
-      }
-
-    // 5. Elevation Scales (Left and Right)
-    drawing.setActiveLayer('L-SCALE');
-    const scaleXLeft = xOffset - (config.width/2 + 3);
-    const scaleXRight = xOffset + (config.width/2 + 3);
-    const elevMin = Math.floor(invertBottom - 1);
-    const elevMax = Math.ceil(maxOuterY + 2);
-
-    [scaleXLeft, scaleXRight].forEach(sx => {
-      drawing.drawLine(sx, elevMin, sx, elevMax);
-      for (let el = elevMin; el <= elevMax; el += 0.1) {
-        const tickL = el % 1 === 0 ? 0.4 : 0.2;
-        const isLabel = el % 1 === 0;
-        drawing.drawLine(sx - tickL/2, el, sx + tickL/2, el);
-        if (isLabel) {
-          drawing.drawText(sx + (sx < xOffset ? -0.6 : 0.6), el, 0.25, 0, el.toFixed(0), sx < xOffset ? 'right' : 'left', 'middle');
         }
+      });
+
+      // 6. Dimensions (Yellow)
+      drawing.setActiveLayer('L-DIMENSIONS');
+      const drawDimH = (y: number, x1: number, x2: number, label: string) => {
+        drawing.drawLine(x1 + xOffset, y, x2 + xOffset, y);
+        drawing.drawLine(x1 + xOffset, y - 0.2, x1 + xOffset, y + 0.2);
+        drawing.drawLine(x2 + xOffset, y - 0.2, x2 + xOffset, y + 0.2);
+        drawing.drawText(xOffset + (x1 + x2)/2, y + 0.1, 0.35, 0, label, 'center', 'bottom');
+      };
+
+      const drawDimV = (x: number, y1: number, y2: number, label: string) => {
+        drawing.drawLine(x + xOffset, y1, x + xOffset, y2);
+        drawing.drawLine(x + xOffset - 0.2, y1, x + xOffset + 0.2, y1);
+        drawing.drawLine(x + xOffset - 0.2, y2, x + xOffset + 0.2, y2);
+        drawing.drawText(x + xOffset - 0.3, (y1 + y2)/2, 0.35, 90, label, 'center', 'bottom');
+      };
+
+      drawDimH(invertBottom - 0.5, -config.width/2, config.width/2, config.width.toFixed(2));
+      drawDimV(-(config.width/2 + 1), invertBottom, maxOuterY, (maxOuterY - invertBottom).toFixed(2));
+      
+      // Spring Line Dim
+      if (config.shape === 'horse-shoe') {
+        const splW = config.archRadius * 2;
+        drawDimH(splY, -config.archRadius, config.archRadius, splW.toFixed(2));
+        // Radius dim
+        drawing.drawLine(xOffset, splY, xOffset + config.archRadius * 0.7, splY + config.archRadius * 0.7);
+        drawing.drawText(xOffset + 0.5, splY + 0.5, 0.35, 45, `R${config.archRadius.toFixed(2)}`, 'left', 'bottom');
       }
-    });
 
-    // 6. Dimensions (Yellow)
-    drawing.setActiveLayer('L-DIMENSIONS');
-    const drawDimH = (y: number, x1: number, x2: number, label: string) => {
-      drawing.drawLine(x1 + xOffset, y, x2 + xOffset, y);
-      drawing.drawLine(x1 + xOffset, y - 0.2, x1 + xOffset, y + 0.2);
-      drawing.drawLine(x2 + xOffset, y - 0.2, x2 + xOffset, y + 0.2);
-      drawing.drawText(xOffset + (x1 + x2)/2, y + 0.1, 0.25, 0, label, 'center', 'bottom');
-    };
+      // 7. Information Box (Bottom)
+      drawing.setActiveLayer('L-INFO-BOX');
+      const boxW = 14;
+      const boxH = 5;
+      const boxX = xOffset - boxW/2;
+      const boxY = invertBottom - 9;
+      
+      drawing.drawLine(boxX, boxY, boxX + boxW, boxY);
+      drawing.drawLine(boxX + boxW, boxY, boxX + boxW, boxY + boxH);
+      drawing.drawLine(boxX + boxW, boxY + boxH, boxX, boxY + boxH);
+      drawing.drawLine(boxX, boxY + boxH, boxX, boxY);
 
-    const drawDimV = (x: number, y1: number, y2: number, label: string) => {
-      drawing.drawLine(x + xOffset, y1, x + xOffset, y2);
-      drawing.drawLine(x + xOffset - 0.2, y1, x + xOffset + 0.2, y1);
-      drawing.drawLine(x + xOffset - 0.2, y2, x + xOffset + 0.2, y2);
-      drawing.drawText(x + xOffset - 0.3, (y1 + y2)/2, 0.25, 90, label, 'center', 'bottom');
-    };
+      drawing.setActiveLayer('L-ANNOTATION');
+      const tx = xOffset;
+      drawing.drawText(tx, boxY + 3.8, 0.35, 0, `Chainage: ${section.chainage.toFixed(2)}`, 'center', 'middle');
+      drawing.drawText(tx, boxY + 2.8, 0.35, 0, `Design Area: ${results.areaOuter.toFixed(2)} m2`, 'center', 'middle');
+      drawing.drawText(tx, boxY + 1.8, 0.35, 0, `Excavated (Rock) Area: ${results.areaRock.toFixed(2)} m2`, 'center', 'middle');
+      drawing.drawText(tx, boxY + 0.8, 0.35, 0, `Overbreak Area: ${(results.areaRock - results.areaOuter).toFixed(2)} m2`, 'center', 'middle');
 
-    drawDimH(invertBottom - 0.5, -config.width/2, config.width/2, config.width.toFixed(2));
-    drawDimV(-(config.width/2 + 1), invertBottom, maxOuterY, (maxOuterY - invertBottom).toFixed(2));
-    
-    // Spring Line Dim
-    if (config.shape === 'horse-shoe') {
-      const splW = config.archRadius * 2;
-      drawDimH(splY, -config.archRadius, config.archRadius, splW.toFixed(2));
-      // Radius dim
-      drawing.drawLine(xOffset, splY, xOffset + config.archRadius * 0.7, splY + config.archRadius * 0.7);
-      drawing.drawText(xOffset + 0.5, splY + 0.5, 0.25, 45, `R${config.archRadius.toFixed(2)}`, 'left', 'bottom');
-    }
-
-    // 7. Information Box (Bottom)
-    drawing.setActiveLayer('L-INFO-BOX');
-    const boxW = 12;
-    const boxH = 4;
-    const boxX = xOffset - boxW/2;
-    const boxY = invertBottom - 8;
-    
-    drawing.drawLine(boxX, boxY, boxX + boxW, boxY);
-    drawing.drawLine(boxX + boxW, boxY, boxX + boxW, boxY + boxH);
-    drawing.drawLine(boxX + boxW, boxY + boxH, boxX, boxY + boxH);
-    drawing.drawLine(boxX, boxY + boxH, boxX, boxY);
-
-    drawing.setActiveLayer('L-ANNOTATION');
-    const tx = xOffset;
-    drawing.drawText(tx, boxY + 2.8, 0.3, 0, `Chainage: ${section.chainage.toFixed(2)}`, 'center', 'middle');
-    drawing.drawText(tx, boxY + 1.8, 0.3, 0, `Design Area: ${results.areaOuter.toFixed(2)} m2`, 'center', 'middle');
-    drawing.drawText(tx, boxY + 0.8, 0.3, 0, `Overbreak Area: ${(results.areaRock - results.areaOuter).toFixed(2)} m2`, 'center', 'middle');
-
-    // Title
-    drawing.drawText(xOffset, boxY - 1.5, 0.5, 0, config.name.toUpperCase(), 'center', 'top');
+      // Title
+      drawing.drawText(xOffset, boxY - 1.5, 0.6, 0, config.name.toUpperCase(), 'center', 'top');
 
     } catch (err) {
       console.error(`Error exporting section at chainage ${section.chainage}:`, err);
