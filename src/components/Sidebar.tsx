@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TunnelConfig, TunnelShape, SlopeSegment, SectionData, TunnelProfile } from '../types';
-import { Plus, Trash2, Save, FolderOpen, Loader2, ChevronDown, ChevronUp, Mountain, Layers } from 'lucide-react';
+import { Plus, Trash2, Save, FolderOpen, Loader2, ChevronDown, ChevronUp, Mountain, Layers, RefreshCw } from 'lucide-react';
 import { db } from '../firebase';
 import { collection, doc, setDoc, onSnapshot, query, serverTimestamp, deleteDoc } from 'firebase/firestore';
 import { User as FirebaseUser } from 'firebase/auth';
